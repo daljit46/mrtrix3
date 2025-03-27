@@ -1,6 +1,7 @@
 name: package-linux-anaconda
 
 on:
+  push:
   release:
     types: [created]
 
