@@ -11,11 +11,13 @@ jobs:
 
     steps:
 
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: base
+
     - name: fetch MacOSX 10.11 SDK
       run: curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz | sudo tar xf - -C /opt/
-
-    - name: install conda-build # and anaconda-client
-      run: sudo $CONDA/bin/conda install -y conda-build # anaconda-client
 
     - name: fetch recipe
       run: |
