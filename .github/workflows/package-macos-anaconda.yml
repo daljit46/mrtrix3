@@ -16,7 +16,6 @@ jobs:
       uses: conda-incubator/setup-miniconda@v2
       with:
         miniconda-version: "latest"
-        activate-environment: base
 
     - name: fetch MacOSX 10.11 SDK
       run: curl -L https://github.com/phracker/MacOSX-SDKs/releases/download/MacOSX10.11.sdk/MacOSX10.11.sdk.tar.xz | sudo tar xf - -C /opt/
