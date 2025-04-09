@@ -15,7 +15,6 @@ jobs:
         shell: msys2 {0}
 
     env:
-      MSYSTEM: MINGW64
       MSYSCON: defterm
       CHERE_INVOKING: enabled_from_arguments
       MSYS2_NOSTART: yes
@@ -25,7 +24,7 @@ jobs:
 
     - uses: msys2/setup-msys2@v2
       with:
-        msystem: UCRT64
+        msystem: MINGW64
         install: |
           git
           python
