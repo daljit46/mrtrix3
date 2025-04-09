@@ -27,6 +27,7 @@ jobs:
         msystem: MINGW64
         install: |
           git
+          pkg-config
           python
           ${{env.MINGW_PACKAGE_PREFIX}}-bc
           ${{env.MINGW_PACKAGE_PREFIX}}-binutils
@@ -35,7 +36,6 @@ jobs:
           ${{env.MINGW_PACKAGE_PREFIX}}-fftw
           ${{env.MINGW_PACKAGE_PREFIX}}-gcc
           ${{env.MINGW_PACKAGE_PREFIX}}-libtiff
-          ${{env.MINGW_PACKAGE_PREFIX}}-pkg-config
           ${{env.MINGW_PACKAGE_PREFIX}}-qt5-base
           ${{env.MINGW_PACKAGE_PREFIX}}-qt5-svg
           ${{env.MINGW_PACKAGE_PREFIX}}-zlib
