@@ -18,7 +18,7 @@ jobs:
           mv conda-build/* .
 
       - name: build package
-        run: ./run.sh ${GITHUB_REF#refs/*/} mrtrix3 conda-linux
+        run: ./run.sh daljit46 mrtrix3-ci-test conda-linux
 
       #    - name: upload package to Anaconda.org
       #      run: $CONDA/bin/anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u MRtrix3 $(sudo $CONDA/bin/conda build conda-build/ --output)
