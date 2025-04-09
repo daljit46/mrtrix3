@@ -1,6 +1,7 @@
 name: package-windows-msys2
 
 on:
+  push:
   release:
     types: [created]
 
