@@ -12,6 +12,14 @@ jobs:
       - name: Install gnu-tar
         run: brew install gnu-tar
 
+      - name: Create alias for gnu-tar
+        run: |
+          tar --version
+          ll `which tar`
+          sudo unlink `which tar`
+          sudo ln -s `which gtar` /usr/bin/tar
+          tar --version
+
       - name: fetch recipe
         run: git clone https://github.com/MRtrix3/macos-installer.git
 
