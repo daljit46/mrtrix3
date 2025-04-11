@@ -40,6 +40,7 @@ jobs:
 
       - name: run makepkg
         run: ./run.sh ${GITHUB_REF#refs/*/} ${GITHUB_REPOSITORY%%/*}
+        run: LINKFLAGS=-lopengl32 ./run.sh ${GITHUB_REF#refs/*/} ${GITHUB_REPOSITORY%%/*}
 
       - name: Upload package to GitHub Release
         uses: AButler/upload-release-assets@v2.0
