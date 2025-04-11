@@ -24,7 +24,7 @@ jobs:
         run: git clone https://github.com/MRtrix3/macos-installer.git
 
       - name: build packages
-        run: PATH=/usr/local/bin:$PATH ./build ${GITHUB_REF#refs/*/}
+        run: PATH=/usr/local/bin:$PATH ./build ${GITHUB_REF#refs/*/} 5.15.2
         working-directory: ./macos-installer
 
       - name: Upload package to GitHub Release
