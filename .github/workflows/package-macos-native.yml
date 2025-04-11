@@ -16,14 +16,15 @@ jobs:
       - name: Create alias for gnu-tar
         run: |
           tar --version
-          sudo ln -sf `which gtar` /usr/bin/tar
+          mkdir -p /usr/local/bin
+          sudo ln -s "$(which gtar)" /usr/local/bin/tar
           tar --version
 
       - name: fetch recipe
         run: git clone https://github.com/MRtrix3/macos-installer.git
 
       - name: build packages
-        run: ./build ${GITHUB_REF#refs/*/}
+        run: PATH=/usr/local/bin:$PATH ./build ${GITHUB_REF#refs/*/}
         working-directory: ./macos-installer
 
       - name: Upload package to GitHub Release
