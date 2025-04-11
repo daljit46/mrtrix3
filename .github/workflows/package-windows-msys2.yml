@@ -41,6 +41,9 @@ jobs:
       - name: run makepkg
         run: LINKFLAGS=-lopengl32 ./run.sh ${GITHUB_REF#refs/*/} ${GITHUB_REPOSITORY%%/*}
 
+      - name: List files in current directory
+        run: ls -l *.tar.xz || ls -l # List matching files, or all files if none match
+
       - name: Upload package to GitHub Release
         uses: AButler/upload-release-assets@v2.0
         with:
