@@ -13,7 +13,7 @@ jobs:
     steps:
 
     - name: Test python
-      run: 
+      run: | 
         python --version
         which python
 
