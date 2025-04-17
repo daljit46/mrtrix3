@@ -12,12 +12,16 @@ jobs:
 
     steps:
 
-    - name: Symlink python
+    - name: Install Python in /usr/bin
       run: |
-        sudo ln -s $(which python3) /usr/bin/python
+        sudo brew install python@3.12
+        sudo brew link --force --overwrite python@3.12
+        python3 -m pip install --upgrade pip
 
     - name: Test python
-      run: /usr/bin/python --version
+      run: |
+        python3 --version
+        which python3
 
     - name: fetch recipe
       run: git clone https://github.com/MRtrix3/macos-installer.git
