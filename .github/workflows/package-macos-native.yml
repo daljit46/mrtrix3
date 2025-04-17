@@ -12,10 +12,13 @@ jobs:
 
     steps:
 
+    - name: Test python3
+      run: which python3
+
     - name: Symlink python in current directory
       run: |
-        mkdir -p python
-        ln -s $(which python3) python/python
+        mkdir -p python_dir
+        ln -s $(which python3) python_dir/python
 
     - name: fetch recipe
       run: git clone https://github.com/MRtrix3/macos-installer.git
