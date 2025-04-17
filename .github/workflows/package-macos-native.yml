@@ -1,6 +1,7 @@
 name: package-macos-native
 
 on:
+  push:
   release:
     types: [created]
 
@@ -15,7 +16,7 @@ jobs:
       run: git clone https://github.com/MRtrix3/macos-installer.git
 
     - name: build packages
-      run: ./build ${GITHUB_REF#refs/*/} 5.15.2
+      run: ./build master 5.15.2
       working-directory: ./macos-installer
 
     - name: Upload package to GitHub Release
