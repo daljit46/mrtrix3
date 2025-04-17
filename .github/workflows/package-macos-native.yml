@@ -12,22 +12,16 @@ jobs:
 
     steps:
 
-    - name: Install Python in /usr/bin
+    - name: Symlink python in current directory
       run: |
-        sudo brew install python@3.12
-        sudo brew link --force --overwrite python@3.12
-        python3 -m pip install --upgrade pip
-
-    - name: Test python
-      run: |
-        python3 --version
-        which python3
+        mkdir -p python
+        ln -s $(which python3) python/python
 
     - name: fetch recipe
       run: git clone https://github.com/MRtrix3/macos-installer.git
 
     - name: build packages
-      run: ./build master 5.15.2
+      run: ./build master 5.15.2 python
       working-directory: ./macos-installer
 
     - name: Upload package to GitHub Release
