@@ -12,10 +12,12 @@ jobs:
 
     steps:
 
+    - name: Symlink python
+      run: |
+        sudo ln -s $(which python3) /usr/bin/python
+
     - name: Test python
-      run: | 
-        python --version
-        which python
+      run: /usr/bin/python --version
 
     - name: fetch recipe
       run: git clone https://github.com/MRtrix3/macos-installer.git
