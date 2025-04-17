@@ -13,7 +13,9 @@ jobs:
     steps:
 
     - name: Test python
-      run: python --version
+      run: 
+        python --version
+        which python
 
     - name: fetch recipe
       run: git clone https://github.com/MRtrix3/macos-installer.git
