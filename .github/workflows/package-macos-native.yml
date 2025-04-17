@@ -13,7 +13,7 @@ jobs:
     steps:
 
     - name: Test python3
-      run: which python3
+      run: /usr/bin/python3 --version
 
     - name: Symlink python in current directory
       run: |
