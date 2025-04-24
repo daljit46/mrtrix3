@@ -12,10 +12,7 @@ jobs:
 
     steps:
 
-    - name: Test python3
-      run: /usr/bin/python3 --version
-
-    - name: Symlink python in current directory
+    - name: Symlink python3
       run: |
         mkdir -p python_dir
         ln -s $(which python3) python_dir/python
