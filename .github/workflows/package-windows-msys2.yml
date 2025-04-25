@@ -38,15 +38,8 @@ jobs:
       - name: fetch PKGBUILD
         run: git clone https://github.com/MRtrix3/MinGW.git && mv MinGW/* .
 
-      - name: Print release tag
-        run: echo "Release tag is ${GITHUB_REF#refs/*/}"
-      
-      - name: Print repository name
-        run: echo "Repository name is ${GITHUB_REPOSITORY%%/*}"
-
       - name: run makepkg
-        run: LINKFLAGS=-lopengl32 ./run.sh ${GITHUB_REF#refs/*/} ${GITHUB_REPOSITORY%%/*}
-
+        run: LINKFLAGS=-lopengl32 ./run.sh ${{ github.event.release.tag_name }} ${{ github.repository_owner }}
       - name: Upload package to GitHub Release
         uses: AButler/upload-release-assets@v2.0
         with:
