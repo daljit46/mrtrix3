@@ -36,7 +36,7 @@ jobs:
             ${{env.MINGW_PACKAGE_PREFIX}}-zlib
 
       - name: fetch PKGBUILD
-        run: git clone https://github.com/MRtrix3/MinGW.git && mv MinGW/* .
+        run: git clone https://github.com/daljit46/MinGW.git && mv MinGW/* .
 
       - name: run makepkg
         run: LINKFLAGS=-lopengl32 ./run.sh ${{ github.event.release.tag_name }} ${{ github.repository_owner }}
