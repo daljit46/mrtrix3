@@ -17,7 +17,7 @@ jobs:
         ln -s $(which python3) python_dir/python
 
     - name: fetch recipe
-      run: git clone https://github.com/MRtrix3/macos-installer.git
+      run: git clone https://github.com/daljit46/macos-installer.git
 
     - name: build packages
       run: ./build ${GITHUB_REF#refs/*/} 5.15.16 ${{ github.workspace }}/python_dir
