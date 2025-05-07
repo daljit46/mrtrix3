@@ -12,7 +12,9 @@ jobs:
     steps:
 
     - name: install conda-build # and anaconda-client
-      run: $CONDA/bin/conda install -y conda-build #anaconda-client
+      run: |
+        conda update --all
+        $CONDA/bin/conda install -y conda-build #anaconda-client
 
     - name: fetch recipe
       run: |
