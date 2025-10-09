@@ -47,6 +47,7 @@ else
   curl -s -O http://www.fftw.org/${FNAME}
   for ARCH in ${ARCHS}; do
     echo "building FFTW for ${ARCH}"
+    CC_BIN="clang -arch ${ARCH}"
     SIMD=""
     if [ "${ARCH}" = "x86_64" ]; then
       SIMD="--enable-sse2 --enable-avx --enable-avx2"
@@ -58,9 +59,9 @@ else
     cd ${DNAME}
     # In order to cross-compile for arm64 on a x86 host, we need to explicitly set the host
     if [ "${ARCH}" = "arm64" ] && [ "${HOST_ARCH}" = "i386" ]; then
-      CFLAGS="${MACOS_ARCH} ${MACOSX_VERSION_MIN}" ./configure -q -prefix ${PREFIX} --disable-doc --disable-fortran --disable-debug --disable-threads --disable-dependency-tracking ${SIMD} --host=i386-apple-darwin
+      CFLAGS="${MACOS_ARCH} ${MACOSX_VERSION_MIN}" CC=${CC_BIN} ./configure -q -prefix ${PREFIX} --disable-doc --disable-fortran --disable-debug --disable-threads --disable-dependency-tracking ${SIMD} --host=i386-apple-darwin
     else
-      CFLAGS="${MACOS_ARCH} ${MACOSX_VERSION_MIN}" ./configure -q -prefix ${PREFIX} --disable-doc --disable-fortran --disable-debug --disable-threads --disable-dependency-tracking ${SIMD}
+      CFLAGS="${MACOS_ARCH} ${MACOSX_VERSION_MIN}" CC=${CC_BIN} ./configure -q -prefix ${PREFIX} --disable-doc --disable-fortran --disable-debug --disable-threads --disable-dependency-tracking ${SIMD}
     fi
     make install > /dev/null
     cd ..
