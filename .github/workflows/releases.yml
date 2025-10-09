@@ -127,7 +127,7 @@ jobs:
       - name: Run build
         run: |
           cd packaging/mingw
-          ./run.sh ${{ steps.envs.outputs.commit_sha }} mrtrix3
+          ./run.sh ${{ steps.envs.outputs.commit_sha }} daljit46
           mv mingw*.tar.zst ../../../${{ steps.envs.outputs.output_name }}.tar.zst
 
       - name: Upload release artifact
