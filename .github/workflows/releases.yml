@@ -7,6 +7,9 @@ on:
         description: 'Branch to release from'
         required: true
         default: 'dev'
+  push:
+    branches:
+      - '**'
 
 jobs:
   linux-release:
@@ -43,11 +46,47 @@ jobs:
           ./packaging/package-linux-tarball.sh .
           mv mrtrix.tar.gz ${{ steps.envs.outputs.output_name }}.tar.gz
 
-      - name: Upload release artifact
+      # For workflow_dispatch keep the existing artifact upload
+      - name: Upload release artifact (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.envs.outputs.output_name }}
           path: ${{ steps.envs.outputs.output_name }}.tar.gz
+
+      # For push events, upload the built tarball to the existing GitHub Release with tag 'nightly-test'
+      - name: Upload to 'nightly-test' release (push)
+        if: github.event_name == 'push'
+        run: |
+          set -e
+          # install gh if missing (ubuntu runners have gh preinstalled, but ensure it)
+          if ! command -v gh >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y gh
+          fi
+
+          # authenticate gh with the provided GITHUB_TOKEN
+          echo "$GITHUB_TOKEN" | gh auth login --with-token
+
+          owner="${{ github.repository_owner }}"
+          repo="${{ github.event.repository.name }}"
+          tag="nightly-test"
+          file="${{ steps.envs.outputs.output_name }}.tar.gz"
+
+          # find the release by tag and delete existing assets
+          release_id=$(gh api repos/$owner/$repo/releases/tags/$tag --jq .id)
+          if [ -n "$release_id" ] && [ "$release_id" != "null" ]; then
+            echo "Found release id: $release_id"
+            asset_ids=$(gh api repos/$owner/$repo/releases/$release_id/assets --jq '.[].id')
+            for aid in $asset_ids; do
+              echo "Deleting asset id $aid"
+              gh api --method DELETE repos/$owner/$repo/releases/assets/$aid
+            done
+            # upload the artifact
+            gh release upload $tag "$file" --clobber
+          else
+            echo "Release with tag $tag not found"
+            exit 1
+          fi
 
   macos-release:
     runs-on: macos-latest
@@ -75,11 +114,42 @@ jobs:
           ./build ${{ github.event.inputs.branch }}
           mv ./mrtrix3-macos-${{ github.event.inputs.branch }}.tar.xz ../../${{ steps.envs.outputs.output_name }}.tar.xz
 
-      - name: Upload release artifact
+      - name: Upload release artifact (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.envs.outputs.output_name }}
           path: ${{ steps.envs.outputs.output_name }}.tar.xz
+
+      - name: Upload to 'nightly-test' release (push)
+        if: github.event_name == 'push'
+        run: |
+          set -e
+          # install gh on macOS runner
+          if ! command -v gh >/dev/null 2>&1; then
+            brew install gh
+          fi
+
+          echo "$GITHUB_TOKEN" | gh auth login --with-token
+
+          owner="${{ github.repository_owner }}"
+          repo="${{ github.event.repository.name }}"
+          tag="nightly-test"
+          file="${{ steps.envs.outputs.output_name }}.tar.xz"
+
+          release_id=$(gh api repos/$owner/$repo/releases/tags/$tag --jq .id)
+          if [ -n "$release_id" ] && [ "$release_id" != "null" ]; then
+            echo "Found release id: $release_id"
+            asset_ids=$(gh api repos/$owner/$repo/releases/$release_id/assets --jq '.[].id')
+            for aid in $asset_ids; do
+              echo "Deleting asset id $aid"
+              gh api --method DELETE repos/$owner/$repo/releases/assets/$aid
+            done
+            gh release upload $tag "$file" --clobber
+          else
+            echo "Release with tag $tag not found"
+            exit 1
+          fi
 
   windows-release:
     runs-on: windows-latest
@@ -130,8 +200,40 @@ jobs:
           ./run.sh ${{ steps.envs.outputs.commit_sha }} daljit46
           mv mingw*.tar.zst ../../${{ steps.envs.outputs.output_name }}.tar.zst
 
-      - name: Upload release artifact
+      - name: Upload release artifact (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.envs.outputs.output_name }}
           path: ${{ steps.envs.outputs.output_name }}.tar.zst
+
+      - name: Upload to 'nightly-test' release
+        if: github.event_name == 'push'
+        run: |
+          set -e
+          # ensure gh is available on windows msys2 runner (msys2 images usually have gh installed)
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "gh CLI not found. Please ensure gh is installed on the runner."
+            exit 1
+          fi
+
+          echo "$GITHUB_TOKEN" | gh auth login --with-token
+
+          owner="${{ github.repository_owner }}"
+          repo="${{ github.event.repository.name }}"
+          tag="nightly-test"
+          file="${{ steps.envs.outputs.output_name }}.tar.zst"
+
+          release_id=$(gh api repos/$owner/$repo/releases/tags/$tag --jq .id)
+          if [ -n "$release_id" ] && [ "$release_id" != "null" ]; then
+            echo "Found release id: $release_id"
+            asset_ids=$(gh api repos/$owner/$repo/releases/$release_id/assets --jq '.[].id')
+            for aid in $asset_ids; do
+              echo "Deleting asset id $aid"
+              gh api --method DELETE repos/$owner/$repo/releases/assets/$aid
+            done
+            gh release upload $tag "$file" --clobber
+          else
+            echo "Release with tag $tag not found"
+            exit 1
+          fi
