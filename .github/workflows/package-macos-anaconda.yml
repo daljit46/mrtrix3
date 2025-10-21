@@ -22,7 +22,7 @@ jobs:
 
       - name: fetch recipe
         run: |
-          git clone https://github.com/MRtrix3/conda-build.git
+          git clone https://github.com/daljit46/conda-build.git
           mv conda-build/* .
           { echo "CONDA_BUILD_SYSROOT:"; echo "  - /opt/MacOSX10.11.sdk        # [osx]"; } > conda_build_config.yaml
 
