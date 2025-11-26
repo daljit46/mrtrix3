@@ -9,7 +9,7 @@ on:
         default: 'dev'
   schedule:
   #   # 01:00 UTC every day – adjust as you like
-  - cron: '23 18 * * *'
+  - cron: '34 22 * * *'
 
 permissions:
   contents: write  # needed for GH CLI to manage releases
@@ -220,6 +220,9 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub CLI auth
       CHANGELOG: ${{ needs.prepare.outputs.changelog }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
