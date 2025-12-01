@@ -254,4 +254,4 @@ jobs:
           fi
 
           # Upload artifacts, overwriting old ones with the same names
-          gh release upload nightly dist/** --clobber
+          gh release upload nightly dist/*/* --clobber
