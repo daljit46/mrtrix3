@@ -77,6 +77,8 @@ jobs:
   linux-release:
     needs: prepare
     if: needs.prepare.outputs.has_changes == 'true'
+    outputs:
+      commit_sha: ${{ steps.envs.outputs.commit_sha }}
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -253,5 +255,28 @@ jobs:
             gh release create nightly --title "Nightly build" --notes-file "$NOTES_FILE"
           fi
 
-          # Upload artifacts, overwriting old ones with the same names
+          # Remove existing assets so we only keep artifacts from the latest run
+          EXISTING_ASSETS="$(gh release view nightly --json assets --jq '.assets[].name' || true)"
+          if [ -n "$EXISTING_ASSETS" ]; then
+            printf '%s\n' "$EXISTING_ASSETS" | while IFS= read -r asset; do
+              [ -z "$asset" ] && continue
+              gh release delete-asset nightly "$asset" --yes
+            done
+          fi
+
+          # Upload the freshly produced artifacts
           gh release upload nightly dist/*/* --clobber
+
+      - name: Move nightly tag forward
+        env:
+          NIGHTLY_COMMIT: ${{ needs.linux-release.outputs.commit_sha }}
+        run: |
+          if [ -z "$NIGHTLY_COMMIT" ]; then
+            echo "Missing commit SHA for nightly tag update." >&2
+            exit 1
+          fi
+          git fetch origin
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f nightly "$NIGHTLY_COMMIT"
+          git push origin refs/tags/nightly --force
