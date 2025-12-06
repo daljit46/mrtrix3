@@ -22,6 +22,7 @@ jobs:
       branch: ${{ steps.vars.outputs.branch }}
       has_changes: ${{ steps.changes.outputs.has_changes }}
       changelog: ${{ steps.changes.outputs.changelog }}
+      recent_commits: ${{ steps.changes.outputs.recent_commits }}
     steps:
       - name: Select branch
         id: vars
@@ -43,6 +44,18 @@ jobs:
       - name: Determine if there are new commits since last nightly
         id: changes
         run: |
+          RECENT="$(git log -n 15 --oneline || true)"
+
+          if [ -n "$RECENT" ]; then
+            {
+              echo "recent_commits<<EOF"
+              echo "$RECENT"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "recent_commits=" >> "$GITHUB_OUTPUT"
+          fi
+
           # Manual runs always build
           if [ "${{ github.event_name }}" != "schedule" ]; then
             echo "has_changes=true" >> "$GITHUB_OUTPUT"
@@ -220,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub CLI auth
-      CHANGELOG: ${{ needs.prepare.outputs.changelog }}
+      RECENT_COMMITS: ${{ needs.prepare.outputs.recent_commits }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -239,12 +252,12 @@ jobs:
           {
             echo "Nightly build for $(date -u +%Y-%m-%d)."
             echo
-            if [ -n "$CHANGELOG" ]; then
-              echo "Changes since last nightly:"
-              echo
-              echo "$CHANGELOG"
+            echo "Latest changes:"
+            echo
+            if [ -n "$RECENT_COMMITS" ]; then
+              echo "$RECENT_COMMITS"
             else
-              echo "No changelog available."
+              echo "No commits to display."
             fi
           } > "$NOTES_FILE"
 
