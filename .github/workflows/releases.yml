@@ -179,7 +179,7 @@ jobs:
         shell: msys2 {0}
         run: |
           cd packaging/mingw
-          ./run.sh ${{ needs.prepare.outputs.commit_sha }} daljit46
+          ./run.sh ${{ needs.prepare.outputs.commit_sha }} ${{ github.repository_owner }}
           mv mingw*.${{ matrix.artifact_ext }} ../../${{ steps.out.outputs.output_name }}.${{ matrix.artifact_ext }}
 
       - name: Upload release artifact
