@@ -9,10 +9,10 @@ on:
         default: 'dev'
   schedule:
   #   # 01:00 UTC every day – adjust as you like
-  - cron: '20 22 * * *'
+  - cron: '5 1 * * *'
 
 permissions:
-  contents: write  # needed for GH CLI to manage releases
+  contents: write
 
 jobs:
   prepare:
