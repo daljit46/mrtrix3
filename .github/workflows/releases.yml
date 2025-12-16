@@ -214,7 +214,7 @@ jobs:
         run: |
           NOTES_FILE=notes.txt
           {
-            echo "Nightly build for $(date -u +%Y-%m-%d)."
+            echo "Nightly build for $(date -u +%d-%m-%Y)."
             echo
             echo "Latest changes:"
             echo
