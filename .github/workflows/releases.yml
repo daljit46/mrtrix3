@@ -8,8 +8,8 @@ on:
         required: true
         default: 'dev'
   schedule:
-  #   # 01:00 UTC every day – adjust as you like
-  - cron: '5 1 * * *'
+  #   # 02:00 UTC every day – adjust as you like
+  - cron: '5 2 * * *'
 
 permissions:
   contents: write
