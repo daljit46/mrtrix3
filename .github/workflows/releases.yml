@@ -142,7 +142,7 @@ jobs:
         shell: pwsh
         run: |
           $commit_sha = (git rev-parse HEAD).Trim()
-          $date = (Get-Date -Format 'yyyy_MM_dd')
+          $date = (Get-Date -Format 'dd-MM-yyyy')
           if ($env:GITHUB_EVENT_NAME -eq 'schedule') {
             $output_name = "mrtrix3-${{ matrix.platform }}-$date"
           } else {
