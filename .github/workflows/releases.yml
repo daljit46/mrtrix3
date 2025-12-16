@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       branch: ${{ steps.vars.outputs.branch }}
+      commit_sha: ${{ steps.sha.outputs.commit_sha }}
       has_changes: ${{ steps.changes.outputs.has_changes }}
       changelog: ${{ steps.changes.outputs.changelog }}
       recent_commits: ${{ steps.changes.outputs.recent_commits }}
@@ -34,12 +35,15 @@ jobs:
             echo "branch=dev" >> "$GITHUB_OUTPUT"
           fi
 
-      # Always check out dev for nightly comparison logic
-      - name: Checkout dev for comparison
+      - name: Checkout selected branch
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: dev
+          ref: ${{ steps.vars.outputs.branch }}
+
+      - name: Capture commit SHA
+        id: sha
+        run: echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Determine if there are new commits since last nightly
         id: changes
@@ -87,97 +91,29 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
-  linux-release:
+  build-release:
     needs: prepare
     if: needs.prepare.outputs.has_changes == 'true'
-    outputs:
-      commit_sha: ${{ steps.envs.outputs.commit_sha }}
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            runs_on: ubuntu-22.04
+            artifact_ext: tar.gz
+          - platform: macos
+            runs_on: macos-latest
+            artifact_ext: tar.xz
+          - platform: windows
+            runs_on: windows-latest
+            artifact_ext: tar.zst
+    runs-on: ${{ matrix.runs_on }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.prepare.outputs.branch }}
-      
-      - name: Set env vars
-        id: envs
-        run: |
-          commit_sha=$(git rev-parse HEAD)
-          date=$(date +%Y_%m_%d)
-          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
-          echo "date=$date" >> $GITHUB_OUTPUT
-          echo "output_name=mrtrix3-linux-$commit_sha-$date" >> $GITHUB_OUTPUT
-
-      - name: Install Eigen3
-        run: |
-          git clone https://gitlab.com/libeigen/eigen.git && cd eigen && git checkout 3.4.0
-          cmake -B build && cmake --build build
-          sudo cmake --install build
-
-      - name: Install Qt 6
-        uses: jurplel/install-qt-action@v3
-        with:
-          version: '6.7.0'
-          set-env: true
-
-      - name: Run build
-        run: |
-          ./packaging/package-linux-tarball.sh .
-          mv mrtrix.tar.gz ${{ steps.envs.outputs.output_name }}.tar.gz
-
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.envs.outputs.output_name }}
-          path: ${{ steps.envs.outputs.output_name }}.tar.gz
-
-  macos-release:
-    needs: prepare
-    if: needs.prepare.outputs.has_changes == 'true'
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ needs.prepare.outputs.branch }}
-
-      - name: Set env vars
-        id: envs
-        run: |
-          commit_sha=$(git rev-parse HEAD)
-          date=$(date +%Y_%m_%d)
-          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
-          echo "date=$date" >> $GITHUB_OUTPUT
-          echo "output_name=mrtrix3-macos-$commit_sha-$date" >> $GITHUB_OUTPUT
-
-      - name: Install deps
-        run: brew install numpy cmake qt pkg-config libpng ninja
-
-      - name: Run build
-        run: |
-          cd ./packaging/macos
-          ./build ${{ needs.prepare.outputs.branch }}
-          mv ./mrtrix3-macos-${{ needs.prepare.outputs.branch }}.tar.xz ../../${{ steps.envs.outputs.output_name }}.tar.xz
-
-      - name: Upload release artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.envs.outputs.output_name }}
-          path: ${{ steps.envs.outputs.output_name }}.tar.xz
-
-  windows-release:
-    needs: prepare
-    if: needs.prepare.outputs.has_changes == 'true'
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
-
-    env:
-      MINGW_PACKAGE_PREFIX: mingw-w64-ucrt-x86_64
-
-    steps:
-      - uses: msys2/setup-msys2@v2
+      - name: Set up MSYS2 for Windows
+        if: matrix.platform == 'windows'
+        uses: msys2/setup-msys2@v2
+        env:
+          MINGW_PACKAGE_PREFIX: mingw-w64-ucrt-x86_64
         with:
           msystem: UCRT64
           install: |
@@ -200,35 +136,63 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ needs.prepare.outputs.branch }}
-      
-      - name: Set env vars
-        id: envs
-        run: |
-          commit_sha=$(git rev-parse HEAD)
-          date=$(date +%Y_%m_%d)
-          echo "commit_sha=$commit_sha" >> $GITHUB_OUTPUT
-          echo "date=$date" >> $GITHUB_OUTPUT
-          echo "output_name=mrtrix3-windows-$commit_sha-$date" >> $GITHUB_OUTPUT
 
-      - name: Run build
+      - name: Set output name
+        id: out
+        shell: pwsh
+        run: |
+          $commit_sha = (git rev-parse HEAD).Trim()
+          $date = (Get-Date -Format 'yyyy_MM_dd')
+          if ($env:GITHUB_EVENT_NAME -eq 'schedule') {
+            $output_name = "mrtrix3-${{ matrix.platform }}-$date"
+          } else {
+            $output_name = "mrtrix3-${{ matrix.platform }}-$commit_sha-$date"
+          }
+          "output_name=$output_name" >> $env:GITHUB_OUTPUT
+
+      - name: Install Qt 6 on Linux
+        if: matrix.platform == 'linux'
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.7.0'
+          set-env: true
+
+      - name: Install dependencies on macOS
+        if: matrix.platform == 'macos'
+        run: brew install numpy cmake qt pkg-config libpng ninja
+
+      - name: Run Linux build
+        if: matrix.platform == 'linux'
+        run: |
+          ./packaging/package-linux-tarball.sh .
+          mv mrtrix.tar.gz ${{ steps.out.outputs.output_name }}.${{ matrix.artifact_ext }}
+
+      - name: Run macOS build
+        if: matrix.platform == 'macos'
+        run: |
+          cd ./packaging/macos
+          ./build ${{ needs.prepare.outputs.branch }}
+          mv ./mrtrix3-macos-${{ needs.prepare.outputs.branch }}.${{ matrix.artifact_ext }} ../../${{ steps.out.outputs.output_name }}.${{ matrix.artifact_ext }}
+
+      - name: Run Windows build
+        if: matrix.platform == 'windows'
+        shell: msys2 {0}
         run: |
           cd packaging/mingw
-          ./run.sh ${{ steps.envs.outputs.commit_sha }} daljit46
-          mv mingw*.tar.zst ../../${{ steps.envs.outputs.output_name }}.tar.zst
+          ./run.sh ${{ needs.prepare.outputs.commit_sha }} daljit46
+          mv mingw*.${{ matrix.artifact_ext }} ../../${{ steps.out.outputs.output_name }}.${{ matrix.artifact_ext }}
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.envs.outputs.output_name }}
-          path: ${{ steps.envs.outputs.output_name }}.tar.zst
+          name: ${{ steps.out.outputs.output_name }}
+          path: ${{ steps.out.outputs.output_name }}.${{ matrix.artifact_ext }}
 
   nightly-release:
     name: Create/update nightly release
     needs:
       - prepare
-      - linux-release
-      - macos-release
-      - windows-release
+      - build-release
     if: github.event_name == 'schedule' && needs.prepare.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     env:
@@ -277,12 +241,11 @@ jobs:
             done
           fi
 
-          # Upload the freshly produced artifacts
           gh release upload nightly dist/*/* --clobber
 
       - name: Move nightly tag forward
         env:
-          NIGHTLY_COMMIT: ${{ needs.linux-release.outputs.commit_sha }}
+          NIGHTLY_COMMIT: ${{ needs.prepare.outputs.commit_sha }}
         run: |
           if [ -z "$NIGHTLY_COMMIT" ]; then
             echo "Missing commit SHA for nightly tag update." >&2
