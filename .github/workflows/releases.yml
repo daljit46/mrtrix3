@@ -70,8 +70,8 @@ jobs:
           # Nightly run: compare HEAD of dev vs nightly tag
           git fetch --tags origin
 
-          if git rev-parse nightly >/dev/null 2>&1; then
-            LOG="$(git log --oneline nightly..HEAD || true)"
+          if git rev-parse refs/tags/nightly >/dev/null 2>&1; then
+            LOG="$(git log --oneline refs/tags/nightly..HEAD || true)"
           else
             # If nightly tag doesn't exist yet, treat all recent commits as "new"
             LOG="$(git log --oneline HEAD~50..HEAD || true)"
