@@ -8,8 +8,8 @@ on:
         required: true
         default: 'dev'
   schedule:
-  #  Every 15 minutes
-  - cron: '*/15 * * * *'
+  #  Every 20 minutes for testing
+    - cron: '*/20 * * * *'
 
 permissions:
   contents: write
@@ -48,7 +48,7 @@ jobs:
       - name: Determine if there are new commits since last nightly
         id: changes
         run: |
-          RECENT="$(git log -n 15 --oneline || true)"
+          RECENT="$(git log --oneline --merges | grep -E 'Merge pull request #[0-9]+ from [^ ]+/' | head -n 15 || true)"
 
           if [ -n "$RECENT" ]; then
             {
@@ -142,7 +142,7 @@ jobs:
         shell: pwsh
         run: |
           $commit_sha = (git rev-parse HEAD).Trim()
-          $date = (Get-Date -Format 'dd-MM-yyyy')
+          $date = (Get-Date -Format 'yyyyMMdd')
           if ($env:GITHUB_EVENT_NAME -eq 'schedule') {
             $output_name = "mrtrix3-${{ matrix.platform }}-$date"
           } else {
@@ -159,7 +159,7 @@ jobs:
 
       - name: Install dependencies on macOS
         if: matrix.platform == 'macos'
-        run: brew install numpy cmake qt pkg-config libpng ninja
+        run: brew install numpy cmake pkg-config libpng ninja
 
       - name: Run Linux build
         if: matrix.platform == 'linux'
@@ -214,7 +214,7 @@ jobs:
         run: |
           NOTES_FILE=notes.txt
           {
-            echo "Nightly build for $(date -u +%d-%m-%Y)."
+            echo "Nightly build for $(date -u +%Y-%m-%d)."
             echo
             echo "Latest changes:"
             echo
