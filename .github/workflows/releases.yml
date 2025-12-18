@@ -161,6 +161,10 @@ jobs:
         if: matrix.platform == 'macos'
         run: brew install numpy cmake pkg-config libpng ninja
 
+      - name: Set MRTRIX_IGNORE_VERSION_MISMATCH for nightly builds
+        if: github.event_name == 'schedule'
+        run: echo "MRTRIX_IGNORE_VERSION_MISMATCH=1" >> $GITHUB_ENV
+
       - name: Run Linux build
         if: matrix.platform == 'linux'
         run: |
