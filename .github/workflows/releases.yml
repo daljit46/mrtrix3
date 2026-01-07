@@ -8,8 +8,8 @@ on:
         required: true
         default: 'dev'
   schedule:
-  #  Every 60 minutes for testing
-    - cron: '*/60 * * * *'
+  #  Every 320 minutes for testing
+    - cron: '*/320 * * * *'
 
 permissions:
   contents: write
