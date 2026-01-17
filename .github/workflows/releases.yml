@@ -159,13 +159,20 @@ jobs:
           version: '6.7.0'
           set-env: true
 
+      # Clone a clean checkout so git describe doesn't pick up local/test tags
+      - name: Clone clean source for Linux build
+        if: matrix.platform == 'linux'
+        run: |
+          git clone --branch "${{ needs.prepare.outputs.branch }}" "https://github.com/${{ github.repository }}.git" /tmp/mrtrix3-src
+          git -C /tmp/mrtrix3-src fetch --tags
+
       - name: Install dependencies on macOS
         if: matrix.platform == 'macos'
         run: brew install numpy cmake pkg-config libpng ninja
       - name: Run Linux build
         if: matrix.platform == 'linux'
         run: |
-          ./packaging/package-linux-tarball.sh . "${{ steps.out.outputs.output_name }}"
+          /tmp/mrtrix3-src/packaging/package-linux-tarball.sh /tmp/mrtrix3-src "${{ steps.out.outputs.output_name }}"
           mv mrtrix.tar.gz ${{ steps.out.outputs.output_name }}.${{ matrix.artifact_ext }}
 
       - name: Run macOS build
