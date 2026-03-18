@@ -9,7 +9,7 @@ on:
         default: 'dev'
   schedule:
   #  Every 5 minutes for testing
-    - cron: '*/5 * * * *'
+    - cron: '*/5000 * * * *'
 
 permissions:
   contents: write
