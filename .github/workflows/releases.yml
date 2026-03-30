@@ -160,7 +160,7 @@ jobs:
       - name: Clone clean source for Linux build
         if: matrix.platform == 'linux'
         run: |
-          git clone --branch "${{ needs.prepare.outputs.branch }}" "https://github.com/mrtrix3/mrtrix3.git" /tmp/mrtrix3-src
+          git clone --branch "${{ needs.prepare.outputs.branch }}" "https://github.com/daljit46/mrtrix3.git" /tmp/mrtrix3-src
           git -C /tmp/mrtrix3-src fetch --tags
 
       - name: Install dependencies on macOS
