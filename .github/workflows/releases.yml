@@ -158,11 +158,6 @@ jobs:
           version: '6.7.0'
           set-env: true
 
-      - name: Remove non-release tags for Linux build
-        if: matrix.platform == 'linux'
-        run: |
-          git tag -l 'nightly-dev' | xargs -r git tag -d
-
       - name: Install dependencies on macOS
         if: matrix.platform == 'macos'
         run: brew install numpy cmake pkg-config libpng ninja
@@ -259,5 +254,5 @@ jobs:
           git fetch origin
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -f nightly "$NIGHTLY_COMMIT"
-          git push origin refs/tags/nightly --force
+          git tag -f nightly-dev "$NIGHTLY_COMMIT"
+          git push origin refs/tags/nightly-dev --force
