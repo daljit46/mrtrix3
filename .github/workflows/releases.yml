@@ -169,7 +169,7 @@ jobs:
       - name: Run Linux build
         if: matrix.platform == 'linux'
         run: |
-          ./packaging/package-linux-tarball.sh /tmp/mrtrix3-src "${{ steps.out.outputs.output_name }}"
+          ./packaging/package-linux-tarball.sh . "${{ steps.out.outputs.output_name }}"
           mv mrtrix.tar.gz ${{ steps.out.outputs.output_name }}.${{ matrix.artifact_ext }}
 
       - name: Run macOS build
