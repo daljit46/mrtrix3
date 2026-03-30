@@ -124,26 +124,6 @@ target_link_libraries(mrtrix-core PUBLIC
 
 if(MRTRIX_ENABLE_GPU)
     target_link_libraries(mrtrix-core PUBLIC dawn::webgpu_dawn slang::slang)
-
-    if(WIN32)
-        set(mrtrix_gpu_runtime_search_dirs
-            "${PROJECT_BINARY_DIR}/_deps/dawn-src/bin"
-            "${PROJECT_BINARY_DIR}/_deps/slang-src/bin"
-        )
-        set(mrtrix_gpu_runtime_regexes
-            ".*/_deps/dawn-src/bin/.*"
-            ".*/_deps/slang-src/bin/.*"
-        )
-    else()
-        set(mrtrix_gpu_runtime_search_dirs
-            "${PROJECT_BINARY_DIR}/_deps/dawn-src/lib"
-            "${PROJECT_BINARY_DIR}/_deps/slang-src/lib"
-        )
-        set(mrtrix_gpu_runtime_regexes
-            ".*/_deps/dawn-src/lib/.*"
-            ".*/_deps/slang-src/lib/.*"
-        )
-    endif()
 endif()
 
 # On Windows, the libraries need to be in the same directory as the executables
@@ -169,17 +149,7 @@ install(TARGETS mrtrix-core
 
 if(MRTRIX_ENABLE_GPU)
     install(IMPORTED_RUNTIME_ARTIFACTS
-        dawn::webgpu_dawn
         slang::slang
-        RUNTIME_DEPENDENCY_SET mrtrix_gpu_runtime_deps
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    )
-
-    install(RUNTIME_DEPENDENCY_SET mrtrix_gpu_runtime_deps
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        DIRECTORIES ${mrtrix_gpu_runtime_search_dirs}
-        POST_INCLUDE_REGEXES ${mrtrix_gpu_runtime_regexes}
     )
 endif()
